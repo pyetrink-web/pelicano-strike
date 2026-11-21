@@ -4,7 +4,7 @@ name: Build PELICAN STRIKE APK
 on:
   workflow_dispatch:
   push:
-    branches: [principal]
+    branches: [main]
 
 jobs:
   build:
@@ -20,14 +20,12 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Configurar Android SDK
+      - name: Localizar Android SDK
         run: |
-          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
-          yes | sdkmanager --licenses || true
-          sdkmanager --install \
-            "platform-tools" \
-            "platforms;android-35" \
-            "build-tools;35.0.0"
+          SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)
+          echo "$(dirname "$SDKMANAGER")" >> "$GITHUB_PATH"
+          yes | "$SDKMANAGER" --licenses || true
+          "$SDKMANAGER" --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Configurar Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -35,7 +33,7 @@ jobs:
           gradle-version: '8.9'
 
       - name: Extrair projeto
-        run: unzip -q PELICAN_STRIKE_Android.zip
+        run: unzip -q PELICAN_STRIKE_Android-1.zip
 
       - name: Compilar APK
         run: |
